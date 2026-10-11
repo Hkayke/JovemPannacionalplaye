@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JOVEM PAN NACIONAL PLAYER - Painel Completo</title>
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --accent-color: #ef4444;
+            --text-color: #f8fafc;
+            --text-dim: #94a3b8;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; padding-bottom: 60px; }
+        .container { max-width: 900px; margin: 0 auto; display: flex; flex-direction: column; gap: 20px; }
+        header { text-align: center; padding: 20px; background: linear-gradient(135deg, #1e3a8a, #3b82f6); border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); }
+        header h1 { font-size: 24px; text-transform: uppercase; letter-spacing: 1px; }
+        header p { font-size: 14px; color: #bfdbfe; margin-top: 5px; }
+        .grid { display: grid; grid-template-columns: 1fr; gap: 20px; }
+        @media(min-width: 768px) { .grid { grid-template-columns: 1fr 1fr; } }
+        .card { background-color: var(--card-bg); border-radius: 12px; padding: 20px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); border: 1px solid #334155; }
+        .card h2 { font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+        .btn { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 12px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; transition: all 0.2s; font-size: 15px; gap: 8px; }
+        .btn-primary { background-color: #3b82f6; color: white; }
+        .btn-primary:hover { background-color: #2563eb; }
+        .btn-danger { background-color: var(--accent-color); color: white; }
+        .btn-danger:hover { background-color: #dc2626; }
+        .btn-success { background-color: #10b981; color: white; }
+        .btn-success:hover { background-color: #059669; }
+        .btn-secondary { background-color: #475569; color: white; }
+        .btn-secondary:hover { background-color: #334155; }
+        .btn-mic { height: 80px; font-size: 18px; border-radius: 50px; text-transform: uppercase; letter-spacing: 1px; box-shadow: 0 0 15px rgba(239, 68, 68, 0.2); }
+        .btn-mic.active { background-color: #10b981; box-shadow: 0 0 20px rgba(16, 185, 129, 0.5); animation: pulseGlow 1.5s infinite; }
+        @keyframes pulseGlow { 0% { transform: scale(1); } 50% { transform: scale(0.98); } 100% { transform: scale(1); } }
+        .control-group { margin-bottom: 15px; }
+        .control-group label { display: block; font-size: 14px; margin-bottom: 5px; color: var(--text-dim); }
+        .slider { width: 100%; -webkit-appearance: none; height: 6px; border-radius: 5px; background: #475569; outline: none; }
+        .slider::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; border-radius: 50%; background: #3b82f6; cursor: pointer; }
+        .playlist { max-height: 150px; overflow-y: auto; background: #0f172a; padding: 10px; border-radius: 8px; border: 1px solid #334155; margin-top: 10px; }
+        .playlist-item { font-size: 13px; padding: 6px; border-bottom: 1px solid #1e293b; display: flex; justify-content: space-between; align-items: center; }
+        .playlist-item:last-child { border-bottom: none; }
+        .playlist-item.playing { color: #10b981; font-weight: bold; }
+        .share-box { background: #0f172a; padding: 12px; border-radius: 8px; font-family: monospace; font-size: 12px; color: #38bdf8; word-break: break-all; border: 1px solid #334155; margin-bottom: 10px; }
+        .effects-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+        .btn-effect { background-color: #334155; color: white; padding: 10px; font-size: 13px; }
+        .btn-effect:hover { background-color: #475569; }
+        
+        .live-indicator { display: inline-flex; align-items: center; gap: 8px; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); padding: 4px 10px; border-radius: 20px; font-size: 12px; color: #f87171; font-weight: bold; }
+        .dot { width: 8px; height: 8px; background-color: var(--accent-color); border-radius: 50%; display: inline-block; animation: blink 1s infinite; }
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0; } 100% { opacity: 1; } }
+        
+        #listener-view { display: none; background-color: #090d16; min-height: 100vh; position: fixed; top:0; left:0; width:100%; height:100%; z-index: 9999; padding: 30px 20px; box-sizing: border-box; }
+        .player-wrapper { max-width: 450px; margin: 60px auto; background: #131c2e; border-radius: 24px; padding: 40px 30px; text-align: center; border: 1px solid #22314d; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.5); }
+        .logo-circle { width: 120px; height: 120px; background: linear-gradient(135deg, #ef4444, #f97316); border-radius: 50%; margin: 0 auto 25px auto; display: flex; align-items: center; justify-content: center; font-size: 40px; box-shadow: 0 0 30px rgba(239, 68, 68, 0.3); border: 4px solid #1e293b; }
+        .player-title { font-size: 22px; font-weight: bold; color: white; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+        .player-subtitle { font-size: 14px; color: var(--text-dim); margin-bottom: 25px; }
+        .listener-counter { font-size: 13px; color: #38bdf8; background: rgba(56, 189, 248, 0.1); padding: 6px 12px; border-radius: 12px; display: inline-block; margin-bottom: 30px; font-weight: 500; }
+        .btn-play-stream { width: 90px; height: 90px; border-radius: 50%; background: #3b82f6; border: none; color: white; font-size: 32px; cursor: pointer; box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.4); transition: transform 0.2s, background-color 0.2s; display: inline-flex; align-items: center; justify-content: center; }
+        .btn-play-stream:hover { transform: scale(1.05); background-color: #2563eb; }
+        .btn-play-stream.playing { background-color: #10b981; box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.4); }
+    </style>
+</head>
+<body>
+
+    <div id="panel-view" class="container">
+        <header>
+            <h1>JOVEM PAN NACIONAL PLAYER</h1>
+            <p>Estúdio Digital & Central de Comando</p>
+        </header>
+
+        <div class="grid">
+            <div class="card">
+                <h2>🎤 Controle de Locução</h2>
+                <div class="control-group">
+                    <button id="btn-mic" class="btn btn-danger btn-mic">🎤 Apertar para Falar (Desligado)</button>
+                </div>
+                <div class="control-group">
+                    <label>Volume do Microfone</label>
+                    <input type="range" id="mic-volume" class="slider" min="0" max="2" step="0.1" value="1">
+                </div>
+                <div class="control-group">
+                    <label>Efeito de Eco (Reverb)</label>
+                    <input type="range" id="mic-echo" class="slider" min="0" max="1" step="0.05" value="0">
+                </div>
+                <div class="control-group">
+                    <label>Tom da Voz (Agudos/Graves)</label>
+                    <input type="range" id="mic-pitch" class="slider" min="500" max="3000" step="100" value="1500">
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>🎵 Grade Musical / Comerciais</h2>
+                <div class="control-group">
+                    <input type="file" id="audio-upload" multiple accept="audio/*" style="display: none;">
+                    <button class="btn btn-primary" onclick="document.getElementById('audio-upload').click()">➕ Enviar Músicas / Áudios</button>
+                </div>
+                <div class="control-group">
+                    <label>Volume da Música</label>
+                    <input type="range" id="music-volume" class="slider" min="0" max="1" step="0.05" value="0.7">
+                </div>
+                <div class="playlist" id="playlist-container">
+                    <p style="color: var(--text-dim); font-size: 13px; text-align: center; padding-top: 20px;">Nenhuma música na lista</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>📢 Central de Divulgação</h2>
+                <p style="font-size: 14px; margin-bottom: 10px; color: var(--text-dim);">Copie o link abaixo para enviar para os seus ouvintes no WhatsApp e Redes Sociais:</p>
+                <div class="share-box" id="link-ouvinte-text">Carregando link...</div>
+                <button class="btn btn-success" id="btn-copy-link">🔗 Copiar Link de Ouvinte</button>
+            </div>
+
+            <div class="card">
+                <h2>⚡ Efeitos Rápidos (Vinhetas)</h2>
+                <p style="font-size: 13px; color: var(--text-dim); margin-bottom: 12px;">Configure seus botões substituindo os caminhos no código fonte:</p>
+                <div class="effects-grid">
+                    <button class="btn btn-effect" onclick="playEffect('vinheta1.mp3')">🔊 Vinheta 01</button>
+                    <button class="btn btn-effect" onclick="playEffect('vinheta2.mp3')">🔊 Vinheta 02</button>
+                    <button class="btn btn-effect" onclick="playEffect('palmas.mp3')">👏 Palmas</button>
+                    <button class="btn btn-effect" onclick="playEffect('risada.mp3')">😂 Risada</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="listener-view">
+        <div class="player-wrapper">
+            <div class="live-indicator">
+                <span class="dot"></span> TRANSMISSÃO AO VIVO
+            </div>
+            
+            <div class="logo-circle">📻</div>
+            
+            <h1 class="player-title">JOVEM PAN NACIONAL PLAYER</h1>
+            <p class="player-subtitle">Você está ouvindo a rádio JOVEM PAN NACIONAL PLAYER</p>
+            
+            <div class="listener-counter">
+                👥 Conectados Agora: <span id="online-count">1</span> ouvintes
+            </div>
+            
+            <div>
+                <button id="btn-stream" class="btn-play-stream">▶️</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const isListener = new URLSearchParams(window.location.search).get('view') === 'ouvinte';
+        
+        let audioCtx;
+        let micStream;
+        let micSource;
+        let micGain;
+        let delayNode;
+        let delayGain;
+        let filterNode;
+        let isMicOn = false;
+
+        let musicFiles = [];
+        let currentMusicIndex = -1;
+        let currentAudioNode = null;
+        let musicGainNode = null;
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setupNavigation();
+            setupSharing();
+            setupMockListeners();
+            if(!isListener) {
+                setupStudioControls();
+            } else {
+                setupPlayerControls();
+            }
+        });
+
+        function setupNavigation() {
+            if (isListener) {
+                document.getElementById('panel-view').style.display = 'none';
+                document.getElementById('listener-view').style.display = 'block';
+                document.body.style.backgroundColor = '#090d16';
+            } else {
+                document.getElementById('panel-view').style.display = 'flex';
+                document.getElementById('listener-view').style.display = 'none';
+            }
+        }
+
+        function setupSharing() {
+            const currentUrl = window.location.href.split('?')[0];
+            const listenerUrl = currentUrl + '?view=ouvinte';
+            const linkBox = document.getElementById('link-ouvinte-text');
+            if(linkBox) linkBox.innerText = listenerUrl;
+
+            const copyBtn = document.getElementById('btn-copy-link');
+            if(copyBtn) {
+                copyBtn.addEventListener('click', () => {
+                    navigator.clipboard.writeText(listenerUrl).then(() => {
+                        copyBtn.innerText = '✅ Link Copiado!';
+                        copyBtn.classList.remove('btn-success');
+                        copyBtn.style.backgroundColor = '#10b981';
+                        setTimeout(() => {
+                            copyBtn.innerText = '🔗 Copiar Link de Ouvinte';
+                            copyBtn.classList.add('btn-success');
+                        }, 2000);
+                    }).catch(() => {
+                        alert('Erro ao copiar. Selecione o texto manualmente.');
+                    });
+                });
+            }
+        }
+
+        function setupMockListeners() {
+            const countEl = document.getElementById('online-count');
+            if (!countEl) return;
+            
+            function updateCount() {
+                let current = parseInt(countEl.innerText) || 12;
+                let change = Math.floor(Math.random() * 3) - 1; 
+                let next = current + change;
+                if(next < 5) next = 5;
+                if(next > 150) next = 150;
+                countEl.innerText = next;
+            }
+            
+            countEl.innerText = Math.floor(Math.random() * 40) + 15;
+            setInterval(updateCount, 7000);
+        }
+
+        function initAudioContext() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        function setupStudioControls() {
+            const btnMic = document.getElementById('btn-mic');
+            const volMic = document.getElementById('mic-volume');
+            const echoMic = document.getElementById('mic-echo');
+            const pitchMic = document.getElementById('mic-pitch');
+            const uploadInput = document.getElementById('audio-upload');
+            const volMusic = document.getElementById('music-volume');
+
+            btnMic.addEventListener('click', async () => {
+                initAudioContext();
+                if (!isMicOn) {
+                    try {
+                        micStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                        micSource = audioCtx.createMediaStreamSource(micStream);
+                        
+                        micGain = audioCtx.createGain();
+                        micGain.gain.value = volMic.value;
+                        
+                        delayNode = audioCtx.createDelay();
+                        delayNode.delayTime.value = 0.3;
+                        
+                        delayGain = audioCtx.createGain();
+                        delayGain.gain.value = echoMic.value;
+                        
+                        filterNode = audioCtx.createBiquadFilter();
+                        filterNode.type = 'peaking';
+                        filterNode.frequency.value = pitchMic.value;
+                        filterNode.Q.value = 1.0;
+                        filterNode.gain.value = 5;
+
+                        micSource.connect(filterNode);
+                        filterNode.connect(micGain);
+                        
+                        micGain.connect(delayNode);
+                        delayNode.connect(delayGain);
+                        delayGain.connect(micGain);
+                        
+                        micGain.connect(audioCtx.destination);
+
+                        isMicOn = true;
+                        btnMic.innerText = '🎤 Microfone Aberto (Ao Vivo)';
+                        btnMic.classList.remove('btn-danger');
+                        btnMic.classList.add('active');
+                    } catch (err) {
+                        console.error(err);
+                        alert('Erro ao acessar microfone. Verifique as permissões.');
+                    }
+                } else {
+                    if (micStream) {
+                        micStream.getTracks().forEach(track => track.stop());
+                    }
+                    isMicOn = false;
+                    btnMic.innerText = '🎤 Apertar para Falar (Desligado)';
+                    btnMic.classList.remove('active');
+                    btnMic.classList.add('btn-danger');
+                }
+            });
+
+            volMic.addEventListener('input', () => {
+                if (micGain && isMicOn) micGain.gain.value = volMic.value;
+            });
+
+            echoMic.addEventListener('input', () => {
+                if (delayGain && isMicOn) delayGain.gain.value = echoMic.value;
+            });
+
+            pitchMic.addEventListener('input', () => {
+                if (filterNode && isMicOn) filterNode.frequency.value = pitchMic.value;
+            });
+
+            uploadInput.addEventListener('change', (e) => {
+                const files = Array.from(e.target.files);
+                if(files.length > 0) {
+                    musicFiles = [...musicFiles, ...files];
+                    renderPlaylist();
+                    if(currentMusicIndex === -1) {
+                        playNextMusic();
+                    }
+                }
+            });
+
+            volMusic.addEventListener('input', () => {
+                if(musicGainNode) musicGainNode.gain.value = volMusic.value;
+            });
+        }
+
+        function renderPlaylist() {
+            const container = document.getElementById('playlist-container');
+            container.innerHTML = '';
+            musicFiles.forEach((file, index) => {
+                const item = document.createElement('div');
+                item.className = `playlist-item ${index === currentMusicIndex ? 'playing' : ''}`;
+                item.innerHTML = `<span>${index + 1}. ${file.name.substring(0, 35)}...</span> <span>${index === currentMusicIndex ? '▶️ tocando' : 'fila'}</span>`;
+                container.appendChild(item);
+            });
+        }
+
+        function playNextMusic() {
+            if(musicFiles.length === 0) return;
+            currentMusicIndex++;
+            if(currentMusicIndex >= musicFiles.length) {
+                currentMusicIndex = 0; 
+            }
+            
+            initAudioContext();
+            renderPlaylist();
+
+            const file = musicFiles[currentMusicIndex];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                audioCtx.decodeAudioData(e.target.result, function(buffer) {
+                    if(currentAudioNode) {
+                        try { currentAudioNode.stop(); } catch(err){}
+                    }
+                    
+                    currentAudioNode = audioCtx.createBufferSource();
+                    currentAudioNode.buffer = buffer;
+                    
+                    if(!musicGainNode) {
+                        musicGainNode = audioCtx.createGain();
+                        const volSlider = document.getElementById('music-volume');
+                        musicGainNode.gain.value = volSlider ? volSlider.value : 0.7;
+                    }
+                    
+                    currentAudioNode.connect(musicGainNode);
+                    musicGainNode.connect(audioCtx.destination);
+                    
+                    currentAudioNode.onended = () => {
+                        playNextMusic();
+                    };
+                    
+                    currentAudioNode.start(0);
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function playEffect(fileUrl) {
+            initAudioContext();
+            alert('Configuração de Efeito: Para tocar de verdade, substitua "' + fileUrl + '" no código pelo link real do seu arquivo mp3 de efeito!');
+        }
+
+        function setupPlayerControls() {
+            const btnStream = document.getElementById('btn-stream');
+            let isPlayingStream = false;
+            
+            btnStream.addEventListener('click', () => {
+                initAudioContext();
+                if(!isPlayingStream) {
+                    isPlayingStream = true;
+                    btnStream.innerText = '⏸️';
+                    btnStream.classList.add('playing');
+                } else {
+                    isPlayingStream = false;
+                    btnStream.innerText = '▶️';
+                    btnStream.classList.remove('playing');
+                }
+            });
+        }
+    </script>
+</body>
+</html>
